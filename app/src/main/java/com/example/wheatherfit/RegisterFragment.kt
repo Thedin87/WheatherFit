@@ -2,16 +2,18 @@ package com.example.wheatherfit
 
 import android.content.Intent
 import android.os.Bundle
-import android.provider.MediaStore
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageView
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -24,47 +26,75 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class RegisterFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-    private var cameraLauncer: ActivityResultLauncher<Void>? = null
+    lateinit var etEmail: EditText
+    lateinit var etConfPass: EditText
+    private lateinit var etPass: EditText
+    private lateinit var btnSignUp: Button
+    lateinit var tvRedirectLogin: TextView
+
+    // create Firebase authentication object
+    private lateinit var auth: FirebaseAuth
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         val binding = inflater.inflate(R.layout.fragment_register, container, false);
+
+        // View Bindings
+        etEmail = binding.findViewById(R.id.register_email_field)
+        etConfPass = binding.findViewById(R.id.register_confirm_password_field)
+        etPass = binding.findViewById(R.id.register_password_field)
+        btnSignUp = binding.findViewById(R.id.register_submit_button)
+        tvRedirectLogin = binding.findViewById(R.id.register_login_button)
+
+        // Initialising auth object
+        auth = Firebase.auth
+
+        btnSignUp.setOnClickListener {
+            signUpUser()
+        }
+
+        // switching from signUp Activity to Login Activity
+        tvRedirectLogin.setOnClickListener {
+            // TODO: return to login
+            Log.d("Register", "need to go back to login")
+        }
         return binding
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment RegisterFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            RegisterFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    private fun signUpUser() {
+        val email = etEmail.text.toString()
+        val pass = etPass.text.toString()
+        val confirmPassword = etConfPass.text.toString()
+
+        // check pass
+        if (email.isBlank() || pass.isBlank() || confirmPassword.isBlank()) {
+            Toast.makeText(requireContext(), "Email and Password can't be blank", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (pass != confirmPassword) {
+            Toast.makeText(requireContext(), "Password and Confirm Password do not match", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+        // If all credential are correct
+        // We call createUserWithEmailAndPassword
+        // using auth object and pass the
+        // email and pass in it.
+        auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener({ task -> }) {
+            if (it.isSuccessful) {
+                Toast.makeText(requireContext(), "Successfully Singed Up", Toast.LENGTH_SHORT).show()
+                requireActivity().finish()
+            } else {
+                Toast.makeText(requireContext(), "Singed Up Failed!", Toast.LENGTH_SHORT).show()
             }
+        }
     }
 }
