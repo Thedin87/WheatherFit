@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.idz.colman24class2"
+    namespace = "com.example.wheatherfit"
     compileSdk = 35
 
     defaultConfig {
