@@ -54,11 +54,10 @@ class MainActivity : AppCompatActivity() {
                 Log.w("TAG", "Error adding document", e)
             }
 
-
         if (savedInstanceState == null) {
-            val fragment = LoginFragment() // Replace with your desired Fragment
+            val fragment = RegisterFragment() // Replace with your desired Fragment
             supportFragmentManager.beginTransaction()
-                .add(R.id.login, fragment) // fragment_container is the ID of the container in your layout
+                .add(R.id.register, fragment) // fragment_container is the ID of the container in your layout
                 .commit()
         }
     }

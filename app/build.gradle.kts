@@ -74,4 +74,6 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.gson)
+
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }
