@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import androidx.navigation.fragment.findNavController
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -52,6 +53,7 @@ class LoginFragment : Fragment() {
     fun handleLogin(email: String, password: String) {
 
         Log.d("Login", "Email entered: $email\nPassword entered: $password")
+        findNavController().navigate(R.id.action_loginFragment_to_homeFragment) // Din do this only if auth succeeds
 
     }
 }

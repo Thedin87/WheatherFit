@@ -51,6 +51,12 @@ class BottomNavFragment : Fragment() {
                     handleMove(currentPage, "upload")
                     true
                 }
+                R.id.logout -> {
+                    // Respond to navigation item 2 click
+                    Log.d("BottomNavFragment", "Logout button clicked")
+                    handleMove(currentPage, "logout")
+                    true
+                }
                 else -> false
             }
         }
@@ -67,6 +73,9 @@ class BottomNavFragment : Fragment() {
             else if (newPage == "upload") {
                 findNavController().navigate(R.id.action_homeFragment_to_uploadFragment)
             }
+            else if (newPage == "logout") {
+                findNavController().navigate(R.id.action_homeFragment_to_logoutFragment)
+            }
 
         }
         else if (currentPage == "profile") {
@@ -77,6 +86,9 @@ class BottomNavFragment : Fragment() {
             else if (newPage == "upload") {
                 findNavController().navigate(R.id.action_profileFragment_to_uploadFragment)
             }
+            else if (newPage == "logout") {
+                findNavController().navigate(R.id.action_profileFragment_to_logoutFragment)
+            }
 
         }
         else if (currentPage == "upload") {
@@ -86,6 +98,9 @@ class BottomNavFragment : Fragment() {
             }
             else if (newPage == "profile") {
                 findNavController().navigate(R.id.action_uploadFragment_to_profileFragment)
+            }
+            else if (newPage == "logout") {
+                findNavController().navigate(R.id.action_uploadFragment_to_logoutFragment)
             }
 
         }
