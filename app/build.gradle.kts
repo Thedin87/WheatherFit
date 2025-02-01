@@ -75,7 +75,11 @@ dependencies {
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.gson)
 
+    implementation(libs.google.firebase.storage)
     implementation(libs.glide)
 
+    implementation(libs.picasso)
     implementation(libs.material)
+
+    implementation(libs.circleimageview)
 }

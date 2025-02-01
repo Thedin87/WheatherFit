@@ -13,7 +13,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 
 // TODO: Rename parameter arguments, choose names that match
@@ -86,6 +88,10 @@ class RegisterFragment : Fragment() {
         }
         auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener() {
             if (it.isSuccessful) {
+                val user = auth.currentUser
+                if (user != null) {
+                    saveUserToFirestore(user) // Save user info to Firestore
+                }
                 Toast.makeText(requireContext(), "Successfully Singed Up", Toast.LENGTH_SHORT).show()
                 requireActivity().finish()
             } else {
@@ -94,4 +100,26 @@ class RegisterFragment : Fragment() {
             }
         }
     }
+
+    fun saveUserToFirestore(user: FirebaseUser) {
+        val db = FirebaseFirestore.getInstance()
+        val userData = hashMapOf(
+            "name" to (user.displayName ?: "New User"),
+            "email" to user.email,
+            "profileImageUrl" to "", // Empty until user uploads a profile picture
+            "phone" to "",
+            "role" to "user" // Can be "admin" if needed
+        )
+
+        db.collection("users")
+            .document(user.uid) // Use UID as document ID
+            .set(userData)
+            .addOnSuccessListener {
+                Log.d("Firestore", "User data saved successfully")
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Error saving user data", e)
+            }
+    }
+
 }
