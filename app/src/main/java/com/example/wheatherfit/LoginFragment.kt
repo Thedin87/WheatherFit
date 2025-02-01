@@ -36,17 +36,23 @@ class LoginFragment : Fragment() {
         val binding = inflater.inflate(R.layout.fragment_login, container, false)
 
         // when the button is clicked get info from email and password
-        val button: Button = binding.findViewById<Button>(R.id.submit);
+        val submitButton: Button = binding.findViewById<Button>(R.id.submit);
         val emailInput = binding.findViewById<EditText>(R.id.email);
         val passwordInput = binding.findViewById<EditText>(R.id.password);
+        val registerButton = binding.findViewById<Button>(R.id.register_button);
 
-        button.setOnClickListener{
+        submitButton.setOnClickListener{
 
             val email = emailInput.text.toString();
             val password = passwordInput.text.toString();
             handleLogin(email, password);
 
         }
+
+        registerButton.setOnClickListener{
+            findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+        }
+
         return binding;
     }
 
