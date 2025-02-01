@@ -33,6 +33,10 @@ class LoginFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        auth = FirebaseAuth.getInstance()
+
+        checkIfLoggedIn()
+
         val binding = inflater.inflate(R.layout.fragment_login, container, false)
 
         // when the button is clicked get info from email and password
@@ -40,8 +44,6 @@ class LoginFragment : Fragment() {
         val emailInput = binding.findViewById<EditText>(R.id.email);
         val passwordInput = binding.findViewById<EditText>(R.id.password);
         val registerButton = binding.findViewById<Button>(R.id.register_button);
-
-        auth = FirebaseAuth.getInstance()
 
         submitButton.setOnClickListener{
 
@@ -77,5 +79,12 @@ class LoginFragment : Fragment() {
                 Toast.makeText(requireActivity(), "Log In failed ", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun checkIfLoggedIn() {
+        if (auth.currentUser != null) {
+            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+        }
+
     }
 }
