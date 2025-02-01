@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -21,9 +23,7 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class LoginFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,10 +41,18 @@ class LoginFragment : Fragment() {
         val passwordInput = binding.findViewById<EditText>(R.id.password);
         val registerButton = binding.findViewById<Button>(R.id.register_button);
 
+        auth = FirebaseAuth.getInstance()
+
         submitButton.setOnClickListener{
 
             val email = emailInput.text.toString();
             val password = passwordInput.text.toString();
+
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(requireContext(), "Email and Password cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             handleLogin(email, password);
 
         }
@@ -56,10 +64,18 @@ class LoginFragment : Fragment() {
         return binding;
     }
 
-    fun handleLogin(email: String, password: String) {
-
-        Log.d("Login", "Email entered: $email\nPassword entered: $password")
-        findNavController().navigate(R.id.action_loginFragment_to_homeFragment) // Din do this only if auth succeeds
-
+    private fun handleLogin(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(requireActivity())
+        {
+            if (it.isSuccessful) {
+                Log.d("Login", "signInWithEmail:success")
+                Toast.makeText(requireActivity(), "Successfully Logged In", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+            }
+            else {
+                Log.w("Login", "signInWithEmail:failure", it.exception)
+                Toast.makeText(requireActivity(), "Log In failed ", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

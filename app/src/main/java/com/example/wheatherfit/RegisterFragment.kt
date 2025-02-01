@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -62,8 +63,7 @@ class RegisterFragment : Fragment() {
 
         // switching from signUp Activity to Login Activity
         tvRedirectLogin.setOnClickListener {
-            // TODO: return to login
-            Log.d("Register", "need to go back to login")
+            findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
         }
         return binding
     }
