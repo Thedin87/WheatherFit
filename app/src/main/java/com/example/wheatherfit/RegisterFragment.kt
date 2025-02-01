@@ -84,16 +84,13 @@ class RegisterFragment : Fragment() {
                 .show()
             return
         }
-        // If all credential are correct
-        // We call createUserWithEmailAndPassword
-        // using auth object and pass the
-        // email and pass in it.
-        auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener({ task -> }) {
+        auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener() {
             if (it.isSuccessful) {
                 Toast.makeText(requireContext(), "Successfully Singed Up", Toast.LENGTH_SHORT).show()
                 requireActivity().finish()
             } else {
-                Toast.makeText(requireContext(), "Singed Up Failed!", Toast.LENGTH_SHORT).show()
+                Log.w("Register", "createUserWithEmail:failure", it.exception)
+                Toast.makeText(requireContext(), "Sing Up Failed", Toast.LENGTH_SHORT).show()
             }
         }
     }
