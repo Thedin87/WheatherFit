@@ -1,15 +1,15 @@
-package com.example.wheatherfit.models
+package com.example.wheatherfit.data.models
 
 data class Current(
     val cloud: Int,
-    val condition: Condition,
+    val condition: com.example.wheatherfit.data.models.Condition,
     val dewpoint_c: Double,
     val dewpoint_f: Double,
     val feelslike_c: Double,
     val feelslike_f: Double,
     val gust_kph: Double,
     val gust_mph: Double,
-    val heatindex_c: Int,
+    val heatindex_c: String,
     val heatindex_f: Double,
     val humidity: Int,
     val is_day: Int,

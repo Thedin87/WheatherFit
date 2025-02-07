@@ -1,4 +1,4 @@
-package com.example.wheatherfit.models
+package com.example.wheatherfit.data.models
 
 data class Condition(
     val code: Int,

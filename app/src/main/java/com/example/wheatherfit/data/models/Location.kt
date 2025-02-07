@@ -1,4 +1,4 @@
-package com.example.wheatherfit.models
+package com.example.wheatherfit.data.models
 
 data class Location(
     val country: String,

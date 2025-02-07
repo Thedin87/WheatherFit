@@ -27,6 +27,7 @@ class ProfileFragment : Fragment() {
 
         val childFragment = BottomNavFragment()
         val bundle = Bundle()
+        bundle.putString("current_page", "profile")
         val profileImage = view.findViewById<ImageView>(R.id.profile_picture)
         loadProfilePicture(profileImage)
         val editProfilePictureText = view.findViewById<TextView>(R.id.edit_profile_picture_text)
