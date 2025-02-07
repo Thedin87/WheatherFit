@@ -20,11 +20,22 @@ class UserViewModel (private val repository: com.example.wheatherfit.data.reposi
         }
     }
 
+    fun getUser(id: String, callback: (User?) -> Unit) {
+        viewModelScope.launch {
+            callback(repository.getUser(id))
+        }
+    }
+
     fun deleteUser(user: User) {
         viewModelScope.launch {
             repository.deleteUser(user)
         }
+    }
 
+    fun logout() {
+        viewModelScope.launch {
+            repository.logout()
+        }
     }
 
 }

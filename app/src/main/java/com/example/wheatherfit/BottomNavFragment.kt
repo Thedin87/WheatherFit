@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
+import com.example.wheatherfit.data.local.User
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class BottomNavFragment : Fragment() {
@@ -64,47 +65,28 @@ class BottomNavFragment : Fragment() {
     }
 
     fun handleMove(currentPage: String?, newPage: String) {
-
-        if (currentPage == "home") {
-
-            if (newPage == "profile") {
-                findNavController().navigate(R.id.action_homeFragment_to_profileFragment)
+        val action = when (currentPage) {
+            "home" -> when (newPage) {
+                "profile" -> findNavController().navigate(R.id.action_homeFragment_to_profileFragment)
+                "upload" -> findNavController().navigate(R.id.action_homeFragment_to_uploadFragment)
+                "logout" -> findNavController().navigate(R.id.action_homeFragment_to_logoutFragment)
+                else -> null
             }
-            else if (newPage == "upload") {
-                findNavController().navigate(R.id.action_homeFragment_to_uploadFragment)
+            "profile" -> when (newPage) {
+                "home" -> findNavController().navigate(R.id.action_profileFragment_to_homeFragment)
+                "upload" -> findNavController().navigate(R.id.action_profileFragment_to_uploadFragment)
+                "logout" -> findNavController().navigate(R.id.action_profileFragment_to_logoutFragment)
+                else -> null
             }
-            else if (newPage == "logout") {
-                findNavController().navigate(R.id.action_homeFragment_to_logoutFragment)
+            "upload" -> when (newPage) {
+                "home" -> findNavController().navigate(R.id.action_uploadFragment_to_homeFragment)
+                "profile" -> findNavController().navigate(R.id.action_uploadFragment_to_profileFragment)
+                "logout" -> findNavController().navigate(R.id.action_uploadFragment_to_logoutFragment)
+                else -> null
             }
-
+            else -> null
         }
-        else if (currentPage == "profile") {
-
-            if (newPage == "home") {
-                findNavController().navigate(R.id.action_profileFragment_to_homeFragment)
-            }
-            else if (newPage == "upload") {
-                findNavController().navigate(R.id.action_profileFragment_to_uploadFragment)
-            }
-            else if (newPage == "logout") {
-                findNavController().navigate(R.id.action_profileFragment_to_logoutFragment)
-            }
-
-        }
-        else if (currentPage == "upload") {
-
-            if(newPage == "home") {
-                findNavController().navigate(R.id.action_uploadFragment_to_homeFragment)
-            }
-            else if (newPage == "profile") {
-                findNavController().navigate(R.id.action_uploadFragment_to_profileFragment)
-            }
-            else if (newPage == "logout") {
-                findNavController().navigate(R.id.action_uploadFragment_to_logoutFragment)
-            }
-
-        }
-
     }
+
 
 }

@@ -30,7 +30,10 @@ private const val ARG_PARAM2 = "param2"
  */
 class RegisterFragment : Fragment() {
     lateinit var etEmail: EditText
-    lateinit var etConfPass: EditText
+    lateinit var etFirstNmae: EditText
+    lateinit var etLastName: EditText
+    lateinit var etCity: EditText
+    lateinit var etCountry: EditText
     private lateinit var etPass: EditText
     private lateinit var btnSignUp: Button
     lateinit var tvRedirectLogin: TextView
@@ -50,9 +53,12 @@ class RegisterFragment : Fragment() {
         val binding = inflater.inflate(R.layout.fragment_register, container, false);
 
         // View Bindings
-        etEmail = binding.findViewById(R.id.register_email_field)
-        etConfPass = binding.findViewById(R.id.register_confirm_password_field)
-        etPass = binding.findViewById(R.id.register_password_field)
+        etFirstNmae = binding.findViewById(R.id.firstname_field)
+        etLastName = binding.findViewById(R.id.lastname_field)
+        etEmail = binding.findViewById(R.id.email_field)
+        etPass = binding.findViewById(R.id.password_field)
+        etCity = binding.findViewById(R.id.city_field)
+        etCountry = binding.findViewById(R.id.country_field)
         btnSignUp = binding.findViewById(R.id.register_submit_button)
         tvRedirectLogin = binding.findViewById(R.id.register_login_button)
 
@@ -71,26 +77,34 @@ class RegisterFragment : Fragment() {
     }
 
     private fun signUpUser() {
+        val firstName = etFirstNmae.text.toString()
+        val lastName = etLastName.text.toString()
         val email = etEmail.text.toString()
         val pass = etPass.text.toString()
-        val confirmPassword = etConfPass.text.toString()
+        val city = etCity.text.toString()
+        val country = etCountry.text.toString()
+        val db = FirebaseFirestore.getInstance()
 
         // check pass
-        if (email.isBlank() || pass.isBlank() || confirmPassword.isBlank()) {
+        if (firstName.isBlank() || lastName.isBlank() ||email.isBlank() || pass.isBlank() || city.isBlank() || country.isBlank()) {
             Toast.makeText(requireContext(), "Email and Password can't be blank", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (pass != confirmPassword) {
-            Toast.makeText(requireContext(), "Password and Confirm Password do not match", Toast.LENGTH_SHORT)
-                .show()
-            return
-        }
         auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener() {
             if (it.isSuccessful) {
                 val user = auth.currentUser
+                Log.d("Register", user?.uid.toString())
                 if (user != null) {
-                    saveUserToFirestore(user) // Save user info to Firestore
+                    saveUserToFirestore(user)
+                    db.collection("users").document(user?.uid!!)
+                        .update("firstname", firstName)
+                    db.collection("users").document(user?.uid!!)
+                        .update("lastname", lastName)
+                    db.collection("users").document(user?.uid!!)
+                        .update("city", city)
+                    db.collection("users").document(user?.uid!!)
+                        .update("country", country)
                 }
                 Toast.makeText(requireContext(), "Successfully Singed Up", Toast.LENGTH_SHORT).show()
                 requireActivity().finish()
