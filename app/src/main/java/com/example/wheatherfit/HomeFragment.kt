@@ -20,7 +20,6 @@ import com.example.wheatherfit.viewmodel.WeatherViewModel
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
-    private val weatherViewModel: WeatherViewModel by viewModels()
     private lateinit var userViewModel: UserViewModel
 
     fun renderNav(user: User) {
@@ -44,15 +43,6 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-
-        val cityAndCountry = "Mevasseret Zion"
-        val apiKey = "7f21c93531c74c408f893537253101"
-        viewLifecycleOwner.lifecycleScope.launch {
-            val weather = weatherViewModel.fetchWeather(apiKey, cityAndCountry)
-            val currentTemp = weather?.current?.temp_c?.toFloat() ?: 0f // Get the temperature and convert to float
-            Log.d("Weather", "Updated temp: $currentTemp")  // Now logs correctly
-
-        }
 
         val userDao = AppDatabase.getDatabase(requireContext()).userDao()
         val repository = UserRepository(userDao)
