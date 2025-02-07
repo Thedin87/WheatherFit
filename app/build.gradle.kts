@@ -60,6 +60,7 @@ dependencies {
 
     implementation(libs.room.runtime)
     implementation(libs.firebase.common.ktx)
+    implementation(libs.androidx.swiperefreshlayout)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
