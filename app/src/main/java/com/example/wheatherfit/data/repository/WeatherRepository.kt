@@ -6,7 +6,6 @@ import com.example.wheatherfit.data.models.Weather
 
 class WeatherRepository {
     suspend fun getWeather(apiKey: String, cityAndCountry: String): Weather {
-        Log.d("Weather", apiKey)
         return RetrofitInstance.api.getCurrentWeather(apiKey, cityAndCountry)
     }
 }

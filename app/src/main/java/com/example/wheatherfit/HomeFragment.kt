@@ -6,14 +6,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
 import com.example.wheatherfit.viewmodel.WeatherViewModel
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private val weatherViewModel: WeatherViewModel by viewModels()
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,15 +31,11 @@ class HomeFragment : Fragment() {
             .replace(com.example.wheatherfit.R.id.navbar_container, childFragment)
             .commit()
 
-        val apiKey = "APIKEY"
         val cityAndCountry = "Mevasseret Zion"
-
-        weatherViewModel.fetchWeather(apiKey, cityAndCountry) { weather ->
-            if (weather != null) {
-                Log.d("Weather", "City: ${weather.location.name}, Temp: ${weather.current.temp_c}°C, Condition: ${weather.current.condition.text}")
-            } else {
-                Log.e("Weather", "Failed to fetch weather")
-            }
+        val apiKey = "<api_key>"
+        viewLifecycleOwner.lifecycleScope.launch {
+            val weather = weatherViewModel.fetchWeather(apiKey, cityAndCountry)
+            Log.d("Weather", "Updated temp: ${weather?.current?.temp_c}")  // Now logs correctly
         }
 
         return view

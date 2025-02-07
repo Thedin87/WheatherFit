@@ -10,16 +10,12 @@ import kotlinx.coroutines.launch
 class WeatherViewModel : ViewModel() {
     private val repository = WeatherRepository()
 
-    fun fetchWeather(apiKey: String, cityAndCountry: String, onResult: (Weather?) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val response = repository.getWeather(apiKey, cityAndCountry)
-                onResult(response)
-            } catch (e: Exception) {
-                Log.d("Weather", e.message.toString())
-                e.printStackTrace()
-                onResult(null)
-            }
+    suspend fun fetchWeather(apiKey: String, city: String): Weather? {
+        return try {
+            repository.getWeather(apiKey, city)
+        } catch (e: Exception) {
+            Log.e("Weather", "Error fetching weather: ${e.message}")
+            null
         }
     }
 }
