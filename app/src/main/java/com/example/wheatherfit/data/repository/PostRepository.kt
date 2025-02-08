@@ -2,6 +2,7 @@ package com.example.wheatherfit.data.repository
 
 import android.content.Context
 import android.widget.Toast
+import com.example.wheatherfit.adapters.PostAdapter
 import com.example.wheatherfit.data.models.Post
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore

@@ -84,6 +84,7 @@ class RegisterFragment : Fragment() {
         val city = etCity.text.toString()
         val country = etCountry.text.toString()
         val db = FirebaseFirestore.getInstance()
+        Log.d("Register", "here")
 
         // check pass
         if (firstName.isBlank() || lastName.isBlank() ||email.isBlank() || pass.isBlank() || city.isBlank() || country.isBlank()) {
@@ -107,7 +108,7 @@ class RegisterFragment : Fragment() {
                         .update("country", country)
                 }
                 Toast.makeText(requireContext(), "Successfully Singed Up", Toast.LENGTH_SHORT).show()
-                requireActivity().finish()
+                findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
             } else {
                 Log.w("Register", "createUserWithEmail:failure", it.exception)
                 Toast.makeText(requireContext(), "Sing Up Failed", Toast.LENGTH_SHORT).show()

@@ -30,6 +30,7 @@ class HomeFragment : Fragment() {
     private var postList = mutableListOf<Post>()
     private lateinit var postAdapter: PostAdapter
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    val postViewModel = PostViewModel()
 
     fun renderNav(user: User) {
 
@@ -86,7 +87,6 @@ class HomeFragment : Fragment() {
         // Setup RecyclerView
         recyclerView = view.findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        val postViewModel = PostViewModel()
         postAdapter = PostAdapter(postList, postViewModel, requireContext())
         recyclerView.adapter = postAdapter
 

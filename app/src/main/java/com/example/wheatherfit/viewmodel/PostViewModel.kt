@@ -2,6 +2,7 @@ package com.example.wheatherfit.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import com.example.wheatherfit.adapters.PostAdapter
 import com.example.wheatherfit.data.repository.PostRepository
 
 class PostViewModel : ViewModel() {

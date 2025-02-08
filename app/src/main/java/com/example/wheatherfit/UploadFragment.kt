@@ -43,9 +43,9 @@ class UploadFragment : Fragment() {
             .addOnSuccessListener {
                 postImageRef.downloadUrl.addOnSuccessListener { downloadUri ->
                     saveImageUrlToFirestore(downloadUri.toString(), description, weather)
+                    Toast.makeText(requireContext(), "Post Uploaded!", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_uploadFragment_to_homeFragment)
                 }
-                Toast.makeText(requireContext(), "Post Uploaded!", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.action_uploadFragment_to_homeFragment)
 
             }
             .addOnFailureListener {
