@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 class UploadFragment : Fragment() {
     private val weatherViewModel: WeatherViewModel by viewModels()
     private var selectedImageUri: Uri? = null  // Store selected image URI
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
 
     val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
@@ -53,7 +55,6 @@ class UploadFragment : Fragment() {
 
     fun saveImageUrlToFirestore(imageUrl: String, description: String, weather: Float) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
-        val db = FirebaseFirestore.getInstance()
 
         val post = hashMapOf(
             "user_id" to userId,
@@ -118,19 +119,29 @@ class UploadFragment : Fragment() {
             .replace(R.id.navbar_container, childFragment)
             .commit()
 
-        val cityAndCountry = "Mevasseret Zion"
-        val apiKey = "7f21c93531c74c408f893537253101"
-        val weatherText = view.findViewById<TextView>(R.id.weather)
+        db.collection("users")
+            .document(auth.currentUser!!.uid)
+            .get()
+            .addOnSuccessListener { user ->
+                val city = user.getString("city")
+                val country = user.getString("country")
+                val cityAndCountry = "$city, $country"
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            val weather = weatherViewModel.fetchWeather(apiKey, cityAndCountry)
-            val currentTemp = weather?.current?.temp_c?.toFloat() ?: 0f // Get the temperature and convert to float
+                val apiKey = "7f21c93531c74c408f893537253101"
+                val weatherText = view.findViewById<TextView>(R.id.weather)
 
-            weatherText.text = "Temperature: $currentTemp°C"
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val weather = weatherViewModel.fetchWeather(apiKey, cityAndCountry)
+                    val currentTemp = weather?.current?.temp_c?.toFloat() ?: 0f // Get the temperature and convert to float
 
-            handleUpload(currentTemp)
+                    weatherText.text = "Temperature: $currentTemp°C"
 
-        }
+                    handleUpload(currentTemp)
+
+                }
+
+            }
+
 
         return view
     }
