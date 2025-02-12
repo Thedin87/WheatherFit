@@ -11,18 +11,30 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.wheatherfit.adapters.PostAdapter
+import com.example.wheatherfit.adapters.ProfilePostAdapter
+import com.example.wheatherfit.data.models.Post
+import com.example.wheatherfit.viewmodel.PostViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
 
 class ProfileFragment : Fragment() {
+    private lateinit var profilePostAdapter: ProfilePostAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private var postList = mutableListOf<Post>()
+    val postViewModel = PostViewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
         val childFragment = BottomNavFragment()
@@ -40,7 +52,22 @@ class ProfileFragment : Fragment() {
             loadProfilePicture(profileImage)
         }
 
+        // Set up SwipeRefreshLayout
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout_profile)
+        swipeRefreshLayout.setOnRefreshListener {
+            // Fetch posts when the user swipes to refresh
+            fetchPosts()
+        }
+
+        // Setup RecyclerView
+        recyclerView = view.findViewById(R.id.recycler_view_profile)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        profilePostAdapter = ProfilePostAdapter(postList, postViewModel, requireContext())
+        recyclerView.adapter = profilePostAdapter
+
         childFragment.arguments = bundle
+
+        fetchPosts()
 
         // Add the child fragment to the container
         childFragmentManager.beginTransaction()
@@ -98,6 +125,21 @@ class ProfileFragment : Fragment() {
             .get()
             .addOnSuccessListener { document ->
                 val profileImageUrl = document.getString("profileImageUrl")
+                val firstName = document.getString("firstname")
+                val lastName = document.getString("lastname")
+                val email = document.getString("email")
+                val city = document.getString("city")
+                val country = document.getString("country")
+
+                // Update the UI with the fetched data
+                val fullNameTextView = view?.findViewById<TextView>(R.id.fullname_text)
+                fullNameTextView?.text = "$firstName $lastName"
+                val emailTextView = view?.findViewById<TextView>(R.id.email_text)
+                emailTextView?.text = email
+                val cityTextView = view?.findViewById<TextView>(R.id.city_text)
+                cityTextView?.text = city
+                val countryTextView = view?.findViewById<TextView>(R.id.country_text)
+                countryTextView?.text = country
 
                 if (!profileImageUrl.isNullOrEmpty()) {
                     // Load profile picture from Firebase
@@ -116,6 +158,29 @@ class ProfileFragment : Fragment() {
             .addOnFailureListener {
                 // If Firestore fetch fails, set default image
                 profileImage.setImageResource(R.drawable.profile_foreground)
+            }
+    }
+    private fun fetchPosts() {
+        // Show the loading spinner while fetching posts
+        swipeRefreshLayout.isRefreshing = true
+
+        FirebaseFirestore.getInstance().collection("posts")
+            .whereEqualTo("user_id", FirebaseAuth.getInstance().currentUser?.uid)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { documents ->
+                postList.clear()
+                for (document in documents) {
+                    val post = document.toObject(Post::class.java)
+                    postList.add(post)
+                }
+                profilePostAdapter.notifyDataSetChanged()
+                swipeRefreshLayout.isRefreshing = false  // Hide the loading spinner after the data is loaded
+            }
+            .addOnFailureListener { exception ->
+                Log.e("ProfileFragment", "Error fetching posts", exception)
+                Toast.makeText(requireContext(), "Failed to load posts", Toast.LENGTH_SHORT).show()
+                swipeRefreshLayout.isRefreshing = false  // Hide the loading spinner if there is an error
             }
     }
 
