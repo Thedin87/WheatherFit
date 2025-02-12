@@ -17,6 +17,7 @@ import com.example.wheatherfit.viewmodel.PostViewModel
 import com.example.wheatherfit.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.squareup.picasso.Picasso
 import kotlin.math.roundToInt
 
 class PostAdapter(private val postList: List<Post>, postViewModel: PostViewModel, context: Context) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
@@ -30,6 +31,7 @@ class PostAdapter(private val postList: List<Post>, postViewModel: PostViewModel
         val postDescription: TextView = view.findViewById(R.id.post_description)
         val postWeather: TextView = view.findViewById(R.id.post_weather)
         val starContainer: LinearLayout = view.findViewById(R.id.star_container)
+        val postProfilePicture: ImageView = view.findViewById(R.id.profile_picture_in_post)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -57,7 +59,17 @@ class PostAdapter(private val postList: List<Post>, postViewModel: PostViewModel
                 if (document.exists()) {
                     val firstName = document.getString("firstname") ?: ""
                     val lastName = document.getString("lastname") ?: ""
+                    val profileUrl = document.getString("profileImageUrl") ?: ""
                     holder.userName.text = "$firstName $lastName"
+                    if (!profileUrl.isNullOrEmpty()) {
+                        Picasso.get()
+                            .load(profileUrl)
+                            .placeholder(R.drawable.profile_foreground) // Show default while loading
+                            .error(R.drawable.profile_foreground) // Show default if URL is broken
+                            .resize(200, 200) // Resize to fit ImageView (optional)
+                            .centerCrop()
+                            .into(holder.postProfilePicture)
+                    }
                 } else {
                     holder.userName.text = "Unknown User"
                 }
