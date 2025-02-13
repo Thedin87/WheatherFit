@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -45,6 +46,7 @@ class ProfilePostAdapter(private val postList: List<Post>, postViewModel: PostVi
         val postWeather: TextView = view.findViewById(R.id.post_weather_profile)
         val starContainer: LinearLayout = view.findViewById(R.id.star_container_profile)
         val postProfilePicture: ImageView = view.findViewById(R.id.profile_picture_in_post_profile)
+        val deletePost: Button = view.findViewById(R.id.delete_button)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProfilePostViewHolder {
@@ -67,6 +69,14 @@ class ProfilePostAdapter(private val postList: List<Post>, postViewModel: PostVi
         holder.postImage.setOnClickListener { view ->
             val action = ProfileFragmentDirections.actionProfileFragmentToUploadFragment2().setPostId(post.id)
             view.findNavController().navigate(action)
+        }
+
+        holder.deletePost.setOnClickListener{ view ->
+            FirebaseFirestore.getInstance().collection("posts").document(post.id).delete()
+                .addOnSuccessListener {
+                    Toast.makeText(context, "Post Deleted!", Toast.LENGTH_SHORT).show()
+                    view.findNavController().navigate(R.id.action_profileFragment_self)
+                }
         }
 
         // Fetch user name from Firestore
