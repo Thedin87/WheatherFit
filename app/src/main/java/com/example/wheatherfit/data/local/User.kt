@@ -10,5 +10,7 @@ data class User(
     val firstname: String = "",
     val lastname: String = "",
     val city: String = "",
-    val country: String = ""
+    val country: String = "",
+    val profileImageUrl: String? = null,
+    val imageBlob: ByteArray? = null
 )

@@ -14,7 +14,6 @@ import com.bumptech.glide.Glide
 import com.example.wheatherfit.R
 import com.example.wheatherfit.data.models.Post
 import com.example.wheatherfit.viewmodel.PostViewModel
-import com.example.wheatherfit.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso

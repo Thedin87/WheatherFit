@@ -1,5 +1,7 @@
 package com.example.wheatherfit
 
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -20,7 +22,12 @@ import com.example.wheatherfit.viewmodel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -36,6 +43,38 @@ class LoginFragment : Fragment() {
     lateinit var auth: FirebaseAuth
     private lateinit var userViewModel: UserViewModel
     val db = FirebaseFirestore.getInstance()
+
+    suspend fun downloadImageAndConvertToByteArray(imageUrl: String): ByteArray? {
+        return suspendCancellableCoroutine { continuation ->
+            try {
+                // Asynchronously load the image using Picasso
+                Picasso.get()
+                    .load(imageUrl)
+                    .into(object : com.squareup.picasso.Target {
+                        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                            if (bitmap != null) {
+                                // Convert the Bitmap into ByteArray
+                                val byteArrayOutputStream = ByteArrayOutputStream()
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                                continuation.resume(byteArrayOutputStream.toByteArray())  // Resume the coroutine with the byte array
+                            } else {
+                                continuation.resumeWithException(Exception("Bitmap is null"))
+                            }
+                        }
+
+                        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                            continuation.resumeWithException(e ?: Exception("Failed to load image"))
+                        }
+
+                        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                            // You can use this to show a placeholder if needed
+                        }
+                    })
+            } catch (e: Exception) {
+                continuation.resumeWithException(e) // Handle the exception if something goes wrong
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,33 +127,81 @@ class LoginFragment : Fragment() {
                 val userDao = AppDatabase.getDatabase(requireContext()).userDao()
                 val repository = UserRepository(userDao)
                 val factory = UserViewModelFactory(repository)
-
                 userViewModel = ViewModelProvider(this, factory).get(UserViewModel::class.java)
 
                 viewLifecycleOwner.lifecycleScope.launch {
+                    try {
+                        db.collection("users")
+                            .whereEqualTo("email", email)
+                            .get()
+                            .addOnSuccessListener { documents: QuerySnapshot ->
+                                if (!documents.isEmpty) {
+                                    val user = documents.documents[0].toObject(User::class.java)
 
-                    db.collection("users")
-                        .whereEqualTo("email", email)
-                        .get()
-                        .addOnSuccessListener { documents: QuerySnapshot ->
-                            if (!documents.isEmpty) {
-                                val user = documents.documents[0].toObject(User::class.java)
+                                    // Check if the user has a profile image URL
+                                    val profileImageUrl = user?.profileImageUrl
+                                    Log.d("Login", "Image: $profileImageUrl")
 
-                                userViewModel.addUser(User(id = auth.currentUser!!.uid!!, email = user!!.email, firstname = user!!.firstname, lastname = user!!.lastname, city = user!!.city, country = user!!.country))
-                                userViewModel.getUser(auth.currentUser!!.uid!!, callback = { currentuser ->
-                                    run {
-                                        Log.d("Login", currentuser.toString())
-                                        findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                                    if (profileImageUrl != "") {
+                                        // Download image as ByteArray in a coroutine
+                                        viewLifecycleOwner.lifecycleScope.launch {
+                                            Log.d("Login", "Downloading image...")
+                                            val imageByteArray = downloadImageAndConvertToByteArray(
+                                                profileImageUrl.toString()
+                                            )
+
+                                            Log.d("Login", "Image ByteArray: $imageByteArray")
+                                            // Proceed to store the user with the image in the Room DB
+                                            userViewModel.addUser(
+                                                User(
+                                                    id = auth.currentUser!!.uid!!,
+                                                    email = user!!.email,
+                                                    firstname = user!!.firstname,
+                                                    lastname = user!!.lastname,
+                                                    city = user!!.city,
+                                                    country = user!!.country,
+                                                    profileImageUrl = user!!.profileImageUrl,
+                                                    imageBlob = imageByteArray // Save image as ByteArray
+                                                )
+                                            )
+                                            // Fetch the user from Room and navigate to the home screen
+                                            userViewModel.getUser(auth.currentUser!!.uid!!) { currentuser ->
+                                                Log.d("Login", currentuser.toString())
+                                                findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                                            }
+                                        }
+                                    } else {
+                                        // If no profile image URL, just save user without an image
+                                        userViewModel.addUser(
+                                            User(
+                                                id = auth.currentUser!!.uid!!,
+                                                email = user!!.email,
+                                                firstname = user!!.firstname,
+                                                lastname = user!!.lastname,
+                                                city = user!!.city,
+                                                country = user!!.country,
+                                                profileImageUrl = user!!.profileImageUrl,
+                                                imageBlob = null // No image
+                                            )
+                                        )
+                                        // Fetch the user from Room and navigate to the home screen
+                                        userViewModel.getUser(auth.currentUser!!.uid!!) { currentuser ->
+                                            Log.d("Login", currentuser.toString())
+                                            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                                        }
                                     }
-                                })
 
-                            } else {
-                                Log.d("Login", "No user found with email: $email")
+
+                                } else {
+                                    Log.d("Login", "No user found with email: $email")
+                                }
                             }
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e("Login", "Error getting user", exception)
-                        }
+                            .addOnFailureListener { exception ->
+                                Log.e("Login", "Error getting user", exception)
+                            }
+                    } catch (e: Exception) {
+                        Log.e("Login", "Error downloading image", e)
+                    }
                 }
 
             }

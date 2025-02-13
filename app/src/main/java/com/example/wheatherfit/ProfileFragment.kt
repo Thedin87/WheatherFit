@@ -1,5 +1,6 @@
 package com.example.wheatherfit
 
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -11,18 +12,24 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.wheatherfit.adapters.PostAdapter
 import com.example.wheatherfit.adapters.ProfilePostAdapter
+import com.example.wheatherfit.data.local.AppDatabase
 import com.example.wheatherfit.data.models.Post
+import com.example.wheatherfit.data.repository.UserRepository
 import com.example.wheatherfit.viewmodel.PostViewModel
+import com.example.wheatherfit.viewmodel.UserViewModel
+import com.example.wheatherfit.viewmodel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
+import java.io.ByteArrayInputStream
 
 class ProfileFragment : Fragment() {
     private lateinit var profilePostAdapter: ProfilePostAdapter
@@ -121,17 +128,25 @@ class ProfileFragment : Fragment() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         val db = FirebaseFirestore.getInstance()
 
-        db.collection("users").document(userId!!)
-            .get()
-            .addOnSuccessListener { document ->
-                val profileImageUrl = document.getString("profileImageUrl")
-                val firstName = document.getString("firstname")
-                val lastName = document.getString("lastname")
-                val email = document.getString("email")
-                val city = document.getString("city")
-                val country = document.getString("country")
+        val userDao = AppDatabase.getDatabase(requireContext()).userDao()
+        val repository = UserRepository(userDao)
+        val factory = UserViewModelFactory(repository)
+        val userViewModel = ViewModelProvider(this, factory).get(UserViewModel::class.java)
 
-                // Update the UI with the fetched data
+        userViewModel.getUser(userId!!) { user ->
+            Log.d("ProfileFragment", "User: ${user.toString()}")
+            val imageBlob = user!!.imageBlob
+            if (imageBlob != null) {
+
+                // extract user info
+                val firstName = user!!.firstname
+                val lastName = user!!.lastname
+                val email = user!!.email
+                val city = user!!.city
+                val country = user!!.country
+                val bitmap = BitmapFactory.decodeByteArray(imageBlob, 0, imageBlob.size)
+
+                // render user info
                 val fullNameTextView = view?.findViewById<TextView>(R.id.fullname_text)
                 fullNameTextView?.text = "$firstName $lastName"
                 val emailTextView = view?.findViewById<TextView>(R.id.email_text)
@@ -141,24 +156,51 @@ class ProfileFragment : Fragment() {
                 val countryTextView = view?.findViewById<TextView>(R.id.country_text)
                 countryTextView?.text = country
 
-                if (!profileImageUrl.isNullOrEmpty()) {
-                    // Load profile picture from Firebase
-                    Picasso.get()
-                        .load(profileImageUrl)
-                        .placeholder(R.drawable.profile_foreground) // Show default while loading
-                        .error(R.drawable.profile_foreground) // Show default if URL is broken
-                        .resize(200, 200) // Resize to fit ImageView (optional)
-                        .centerCrop()
-                        .into(profileImage)
-                } else {
-                    // No profile picture found, set default image
-                    profileImage.setImageResource(R.drawable.profile_foreground)
-                }
+                profileImage.setImageBitmap(bitmap)
             }
-            .addOnFailureListener {
-                // If Firestore fetch fails, set default image
-                profileImage.setImageResource(R.drawable.profile_foreground)
+            else {
+
+                db.collection("users").document(userId!!)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        val profileImageUrl = document.getString("profileImageUrl")
+                        val firstName = document.getString("firstname")
+                        val lastName = document.getString("lastname")
+                        val email = document.getString("email")
+                        val city = document.getString("city")
+                        val country = document.getString("country")
+
+                        // Update the UI with the fetched data
+                        val fullNameTextView = view?.findViewById<TextView>(R.id.fullname_text)
+                        fullNameTextView?.text = "$firstName $lastName"
+                        val emailTextView = view?.findViewById<TextView>(R.id.email_text)
+                        emailTextView?.text = email
+                        val cityTextView = view?.findViewById<TextView>(R.id.city_text)
+                        cityTextView?.text = city
+                        val countryTextView = view?.findViewById<TextView>(R.id.country_text)
+                        countryTextView?.text = country
+
+                        if (!profileImageUrl.isNullOrEmpty()) {
+                            // Load profile picture from Firebase
+                            Picasso.get()
+                                .load(profileImageUrl)
+                                .placeholder(R.drawable.profile_foreground) // Show default while loading
+                                .error(R.drawable.profile_foreground) // Show default if URL is broken
+                                .resize(200, 200) // Resize to fit ImageView (optional)
+                                .centerCrop()
+                                .into(profileImage)
+                        } else {
+                            // No profile picture found, set default image
+                            profileImage.setImageResource(R.drawable.profile_foreground)
+                        }
+                    }
+                    .addOnFailureListener {
+                        // If Firestore fetch fails, set default image
+                        profileImage.setImageResource(R.drawable.profile_foreground)
+                    }
             }
+        }
+
     }
     private fun fetchPosts() {
         // Show the loading spinner while fetching posts
