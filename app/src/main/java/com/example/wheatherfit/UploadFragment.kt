@@ -14,14 +14,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.example.wheatherfit.viewmodel.WeatherViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
+import kotlin.math.log
 
 class UploadFragment : Fragment() {
+    val args: UploadFragmentArgs by navArgs()
     private val weatherViewModel: WeatherViewModel by viewModels()
     private var selectedImageUri: Uri? = null  // Store selected image URI
     val db = FirebaseFirestore.getInstance()
@@ -51,6 +54,42 @@ class UploadFragment : Fragment() {
             .addOnFailureListener {
                 Toast.makeText(requireContext(), "Upload Failed: ${it.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+    fun updatePost(imageUri: Uri, description: String, weather: Float, postId: String) {
+        val storageRef = FirebaseStorage.getInstance().reference
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        val postImageRef = storageRef.child("outfits/$userId-${System.currentTimeMillis()}.jpg")
+
+        postImageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                postImageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                    updatePostPicture(downloadUri.toString(), description, weather, postId)
+                    Toast.makeText(requireContext(), "Post Edited!", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_uploadFragment_to_homeFragment)
+                }
+
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Upload Failed: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    fun updatePostPicture(imageUrl: String, description: String, weather: Float, postId: String){
+        val db = FirebaseFirestore.getInstance()
+        val updateData = mapOf(
+            "image_url" to imageUrl,
+            "description" to description,
+            "weather" to weather
+        )
+        db.collection("posts").document(postId).update(updateData)
+            .addOnSuccessListener {
+                Log.d("Firestore", "Post updated successfully!")
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Error updating post", e)
+            }
+
+
     }
 
     fun saveImageUrlToFirestore(imageUrl: String, description: String, weather: Float) {
@@ -86,6 +125,11 @@ class UploadFragment : Fragment() {
         val etUploadButton = view?.findViewById<Button>(R.id.upload_button)
         val shareButton = view?.findViewById<Button>(R.id.share)
 
+        Log.i("UploadFragment", "args.postId: ${args.postId}")
+        if (args.postId != "null") {
+            etUploadButton?.text = "Replace"
+        }
+
         etUploadButton?.setOnClickListener {
             openGallery()  // Only selects an image, does NOT upload
         }
@@ -93,7 +137,20 @@ class UploadFragment : Fragment() {
         shareButton?.setOnClickListener {
             val description = etDescription?.editText?.text.toString()
             if (selectedImageUri != null) {
-                uploadPostPicture(selectedImageUri!!, description, currentTemp)  // Upload image only when sharing
+                if (args.postId == "null") {
+                    uploadPostPicture(
+                        selectedImageUri!!,
+                        description,
+                        currentTemp
+                    )  // Upload image only when sharing
+                } else {
+                    updatePost(
+                        selectedImageUri!!,
+                        description,
+                        currentTemp,
+                        args.postId
+                    )
+                }
             } else {
                 Toast.makeText(requireContext(), "Please select an image first", Toast.LENGTH_SHORT).show()
             }

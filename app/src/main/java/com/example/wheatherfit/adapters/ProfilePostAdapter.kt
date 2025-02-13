@@ -1,8 +1,10 @@
 package com.example.wheatherfit.adapters
 
 import android.content.Context
+import android.graphics.Path.Direction
 import android.net.Uri
 import android.os.Build
+import android.text.Layout.Directions
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,8 +18,11 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.os.registerForAllProfilingResults
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.wheatherfit.ProfileFragmentDirections
 import com.example.wheatherfit.R
 import com.example.wheatherfit.data.models.Post
 import com.example.wheatherfit.viewmodel.PostViewModel
@@ -58,6 +63,11 @@ class ProfilePostAdapter(private val postList: List<Post>, postViewModel: PostVi
         // Set description and weather
         holder.postDescription.text = post.description
         holder.postWeather.text = "${post.weather.roundToInt()}°C"
+
+        holder.postImage.setOnClickListener { view ->
+            val action = ProfileFragmentDirections.actionProfileFragmentToUploadFragment2().setPostId(post.id)
+            view.findNavController().navigate(action)
+        }
 
         // Fetch user name from Firestore
         FirebaseFirestore.getInstance().collection("users")

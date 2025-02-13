@@ -75,6 +75,8 @@
             android:layout_marginStart="10dp"
             android:layout_marginBottom="10dp"
             android:text="Edit"
+            android:textSize="20sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@+id/post_image_profile"
             app:layout_constraintStart_toStartOf="@+id/post_image_profile" />
 
